@@ -1,0 +1,426 @@
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>8 Fold Evolution</title>
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        /* ===== Colors tuned to logo ===== */
+        :root{
+        --logo-red: #e34b4b;
+        --logo-green: #7ac142;
+        --logo-blue: #2ea7e0;
+        --base-bg: #fbfaf8;
+        --glass-bg: rgba(255,255,255,0.22);
+        --glass-border: rgba(255,255,255,0.45);
+        --muted: #6b6b6b;
+        }
+
+        /* ===== Page basics ===== */
+        body { background: var(--base-bg); -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+        main, header, footer, section { position: relative; z-index: 1; }
+
+        /* ===== Soft background blobs (darker) ===== */
+        .soft-blob {
+        filter: blur(36px);
+        opacity: 0.42;
+        pointer-events: none;
+        position: absolute;
+        border-radius: 999px;
+        }
+
+        /* radial backgrounds (use rgba of logo colors) */
+        .blob-blue { background: radial-gradient(circle at 30% 30%, rgba(46,167,224,0.42), transparent 45%); }
+        .blob-green { background: radial-gradient(circle at 30% 30%, rgba(122,193,66,0.36), transparent 45%); }
+        .blob-red { background: radial-gradient(circle at 30% 30%, rgba(227,75,75,0.42), transparent 45%); }
+
+        /* ===== Avatar float animation ===== */
+        @keyframes floatY {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-8px); }
+        100% { transform: translateY(0px); }
+        }
+        .float-subtle { animation: floatY 6s ease-in-out infinite; }
+
+        /* avatar hover */
+        .avatar-wrap { transition: transform 260ms ease, box-shadow 260ms ease; }
+        .avatar-wrap:hover { transform: translateY(-6px) scale(1.04); box-shadow: 0 12px 30px rgba(16,24,40,0.12); }
+
+        /* ===== Reveal (fade+slide) ===== */
+        .reveal { opacity: 0; transform: translateY(18px); transition: all 640ms cubic-bezier(.2,.9,.2,1); will-change: transform, opacity; }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+
+        /* ===== Glass components ===== */
+        .glass {
+        background: linear-gradient(135deg, rgba(255,255,255,0.20), rgba(255,255,255,0.12));
+        backdrop-filter: blur(10px) saturate(120%);
+        -webkit-backdrop-filter: blur(10px) saturate(120%);
+        border: 1px solid var(--glass-border);
+        box-shadow: 0 6px 28px rgba(16,24,40,0.06);
+        }
+
+        /* ===== Member info dropdown (collapsible) ===== */
+        .member-card { transition: max-height 420ms ease, opacity 420ms ease; overflow: hidden; opacity: 0; max-height: 0; }
+        .member-card.open { opacity: 1; max-height: 420px; }
+
+        /* ===== Footer social icons ===== */
+        .social-btn { display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; border-radius:8px; transition: background 180ms ease, transform 180ms ease; }
+        .social-btn:hover { transform: translateY(-4px); background: rgba(255,255,255,0.06); }
+
+        /* ===== Apple-like loader ===== */
+        .loader-wrap {
+        position: fixed; inset: 0; z-index: 9999; display:flex; align-items:center; justify-content:center; background: var(--base-bg);
+        transition: opacity 420ms ease, visibility 420ms ease;
+        }
+        .loader-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+        /* loader dot grid fade (subtle) */
+        .loader-logo { width: 90px; height: 90px; display:flex; align-items:center; justify-content:center; border-radius:24px; }
+        .loader-dot {
+        width:10px; height:10px; margin:4px; border-radius:50%; background: var(--logo-blue); opacity:0; transform: translateY(8px);
+        animation: loaderPop 1100ms cubic-bezier(.2,.9,.2,1) infinite;
+        }
+        .loader-dot:nth-child(1){ animation-delay:0s; background:var(--logo-red); }
+        .loader-dot:nth-child(2){ animation-delay:0.08s; background:var(--logo-green); }
+        .loader-dot:nth-child(3){ animation-delay:0.16s; background:var(--logo-blue); }
+        @keyframes loaderPop {
+        0% { opacity: 0; transform: translateY(8px) scale(0.9); }
+        40% { opacity: 1; transform: translateY(0) scale(1.02); }
+        100% { opacity: 0; transform: translateY(-8px) scale(0.95); }
+        }
+
+        /* small responsive niceties */
+        @media (max-width:640px){
+        .blob-blue { left:-6rem; top:-3rem; width:18rem; height:18rem; }
+        .blob-green { right:-6rem; top:6rem; width:20rem; height:20rem; }
+        }
+    </style>
+    </head>
+
+    <body class="antialiased text-gray-900">
+
+    <!-- ===== LOADER (Apple-like) ===== -->
+    <div id="loader" class="loader-wrap">
+        <div class="loader-logo glass flex items-center justify-center p-6">
+        <!-- three dots (coloured) -->
+        <div style="display:flex; align-items:center;">
+            <div class="loader-dot"></div>
+            <div class="loader-dot"></div>
+            <div class="loader-dot"></div>
+        </div>
+        </div>
+    </div>
+
+    <!-- ===== Background blobs ===== -->
+    <div class="absolute inset-0 -z-10 pointer-events-none">
+        <div class="soft-blob blob-blue" style="width:20rem;height:20rem; left:3rem; top:3rem;"></div>
+        <div class="soft-blob blob-green" style="width:24rem;height:24rem; right:4rem; top:8rem;"></div>
+        <div class="soft-blob blob-red" style="width:22rem;height:22rem; left:8rem; bottom:6rem;"></div>
+    </div>
+
+    <!-- ===== Page container ===== -->
+    <div class="min-h-screen flex flex-col">
+
+        <!-- NAV (top right simple) -->
+        <header class="max-w-6xl mx-auto w-full px-6 pt-8">
+        <nav class="flex justify-end items-center gap-8 text-sm font-medium">
+            <a href="#about" class="text-gray-800 hover:opacity-80 transition">About</a>
+            <a href="#members" class="text-gray-800 hover:opacity-80 transition">Members</a>
+            <a href="#contact" class="text-gray-800 hover:opacity-80 transition">Contact</a>
+        </nav>
+        </header>
+
+        <!-- HERO -->
+        <main class="flex-1">
+        <section class="max-w-3xl mx-auto px-6 text-center pt-8 pb-16">
+            <p class="text-gray-700 text-lg font-light mb-4 reveal" data-reveal>“Nothing changes if nothing changes”</p>
+
+            <div class="mx-auto w-64 h-64 flex items-center justify-center reveal" data-reveal>
+            <!-- logo image (NO rotation) -->
+            <img src="logo.png" alt="8 Fold Evolution logo" class="w-64 h-auto">
+            </div>
+
+            <h1 class="mt-6 text-4xl md:text-5xl font-extrabold tracking-wide reveal" data-reveal>8 FOLD EVOLUTION</h1>
+        </section>
+
+        <!-- ABOUT -->
+        <section id="about" class="max-w-4xl mx-auto px-6 py-10 reveal" data-reveal>
+            <h2 class="text-3xl font-bold mb-4">About Us</h2>
+            <p class="text-gray-700 text-lg leading-relaxed">
+            We are 8 Fold Evolution — a group united to grow, support, and empower one another.
+            Our purpose is to explore confidence, teamwork, and self-growth.
+            8 Fold Evolution is inspired by the Buddhist concept of the Eightfold Path, which outlines principles for ethical living and personal development.
+            Through collaboration and shared experiences, we aim to evolve together, embracing challenges and celebrating successes as a cohesive unit.
+            </p>
+        </section>
+
+        <!-- MEMBERS (interactive) -->
+        <section id="members" class="max-w-6xl mx-auto px-6 py-12 reveal" data-reveal>
+            <h2 class="text-3xl font-bold mb-6">Team Members</h2>
+
+            <!-- avatars grid -->
+            <div id="team-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-8">
+            <!-- member 1 -->
+            <div class="text-center">
+                <button onclick="toggleMember(1)" class="avatar-wrap w-28 h-28 mx-auto rounded-full overflow-hidden float-subtle" title="Navaneeth">
+                <img src="navaneeth.png" alt="Navaneeth" class="w-full h-full object-cover">
+                </button>
+                <div class="mt-3 font-medium">Navaneeth</div>
+                <a class="social-btn" href="https://www.linkedin.com/in/navaneeth-m-444992361/" target="_blank" rel="noreferrer" aria-label="LinkedIn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M4.98 3.5C4.98 4.88 3.86 6 2.5 6 1.12 6 0 4.88 0 3.5 0 2.12 1.12 1 2.5 1 3.86 1 4.98 2.12 4.98 3.5zM.2 8.9H4.8V24H.2zM7.7 8.9H12.1V11.1H12.2c.6-1.1 2.2-2.2 4.6-2.2 4.9 0 5.8 3.2 5.8 7.3V24h-4.7v-7.5c0-1.8 0-4.2-2.6-4.2-2.6 0-3 2-3 4v7.7H7.7z" fill="currentColor"/>
+                </svg>
+            </a>
+            </div>
+
+            <!-- member 2 -->
+            <div class="text-center">
+                <button onclick="toggleMember(2)" class="avatar-wrap w-28 h-28 mx-auto rounded-full overflow-hidden float-subtle" title="Member 2">
+                <img src="rizwan.png" alt="Member 2" class="w-full h-full object-cover">
+                </button>
+                <div class="mt-3 font-medium">Rizwan</div>
+                <a class="social-btn" href="https://www.linkedin.com/" target="_blank" rel="noreferrer" aria-label="LinkedIn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M4.98 3.5C4.98 4.88 3.86 6 2.5 6 1.12 6 0 4.88 0 3.5 0 2.12 1.12 1 2.5 1 3.86 1 4.98 2.12 4.98 3.5zM.2 8.9H4.8V24H.2zM7.7 8.9H12.1V11.1H12.2c.6-1.1 2.2-2.2 4.6-2.2 4.9 0 5.8 3.2 5.8 7.3V24h-4.7v-7.5c0-1.8 0-4.2-2.6-4.2-2.6 0-3 2-3 4v7.7H7.7z" fill="currentColor"/>
+                </svg>
+            </a>
+            </div>
+
+            <!-- member 3 -->
+            <div class="text-center">
+                <button onclick="toggleMember(3)" class="avatar-wrap w-28 h-28 mx-auto rounded-full overflow-hidden float-subtle" title="Member 3">
+                <img src="milan.png" alt="Member 3" class="w-full h-full object-cover">
+                </button>
+                <div class="mt-3 font-medium">Milan</div>
+                <a class="social-btn" href="https://www.linkedin.com/" target="_blank" rel="noreferrer" aria-label="LinkedIn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M4.98 3.5C4.98 4.88 3.86 6 2.5 6 1.12 6 0 4.88 0 3.5 0 2.12 1.12 1 2.5 1 3.86 1 4.98 2.12 4.98 3.5zM.2 8.9H4.8V24H.2zM7.7 8.9H12.1V11.1H12.2c.6-1.1 2.2-2.2 4.6-2.2 4.9 0 5.8 3.2 5.8 7.3V24h-4.7v-7.5c0-1.8 0-4.2-2.6-4.2-2.6 0-3 2-3 4v7.7H7.7z" fill="currentColor"/>
+                </svg>
+            </a>
+            </div>
+
+            <!-- member 4 -->
+            <div class="text-center">
+                <button onclick="toggleMember(4)" class="avatar-wrap w-28 h-28 mx-auto rounded-full overflow-hidden float-subtle" title="Member 4">
+                <img src="hisana.png" alt="Member 4" class="w-full h-full object-cover">
+                </button>
+                <div class="mt-3 font-medium">Hisana</div>
+                <a class="social-btn" href="https://www.linkedin.com/" target="_blank" rel="noreferrer" aria-label="LinkedIn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M4.98 3.5C4.98 4.88 3.86 6 2.5 6 1.12 6 0 4.88 0 3.5 0 2.12 1.12 1 2.5 1 3.86 1 4.98 2.12 4.98 3.5zM.2 8.9H4.8V24H.2zM7.7 8.9H12.1V11.1H12.2c.6-1.1 2.2-2.2 4.6-2.2 4.9 0 5.8 3.2 5.8 7.3V24h-4.7v-7.5c0-1.8 0-4.2-2.6-4.2-2.6 0-3 2-3 4v7.7H7.7z" fill="currentColor"/>
+                </svg>
+            </a>
+            </div>
+
+            <!-- member 5 -->
+            <div class="text-center">
+                <button onclick="toggleMember(5)" class="avatar-wrap w-28 h-28 mx-auto rounded-full overflow-hidden float-subtle" title="Member 5">
+                <img src="niya.png" alt="Member 5" class="w-full h-full object-cover">
+                </button>
+                <div class="mt-3 font-medium">Niya</div>
+                <a class="social-btn" href="https://www.linkedin.com/" target="_blank" rel="noreferrer" aria-label="LinkedIn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M4.98 3.5C4.98 4.88 3.86 6 2.5 6 1.12 6 0 4.88 0 3.5 0 2.12 1.12 1 2.5 1 3.86 1 4.98 2.12 4.98 3.5zM.2 8.9H4.8V24H.2zM7.7 8.9H12.1V11.1H12.2c.6-1.1 2.2-2.2 4.6-2.2 4.9 0 5.8 3.2 5.8 7.3V24h-4.7v-7.5c0-1.8 0-4.2-2.6-4.2-2.6 0-3 2-3 4v7.7H7.7z" fill="currentColor"/>
+                </svg>
+            </a>
+            </div>
+
+            <!-- member 6 -->
+            <div class="text-center">
+                <button onclick="toggleMember(6)" class="avatar-wrap w-28 h-28 mx-auto rounded-full overflow-hidden float-subtle" title="Member 6">
+                <img src="gokul.png" alt="Member 6" class="w-full h-full object-cover">
+                </button>
+                <div class="mt-3 font-medium">Gokul</div>
+                <a class="social-btn" href="https://www.linkedin.com/in/gokul-shaji-43b104381?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app " target="_blank" rel="noreferrer" aria-label="LinkedIn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M4.98 3.5C4.98 4.88 3.86 6 2.5 6 1.12 6 0 4.88 0 3.5 0 2.12 1.12 1 2.5 1 3.86 1 4.98 2.12 4.98 3.5zM.2 8.9H4.8V24H.2zM7.7 8.9H12.1V11.1H12.2c.6-1.1 2.2-2.2 4.6-2.2 4.9 0 5.8 3.2 5.8 7.3V24h-4.7v-7.5c0-1.8 0-4.2-2.6-4.2-2.6 0-3 2-3 4v7.7H7.7z" fill="currentColor"/>
+                </svg>
+            </a>
+            </div>
+
+            <!-- member 7 -->
+            <div class="text-center">
+                <button onclick="toggleMember(7)" class="avatar-wrap w-28 h-28 mx-auto rounded-full overflow-hidden float-subtle" title="Member 7">
+                <img src="jyothika.png" alt="Member 7" class="w-full h-full object-cover">
+                </button>
+                <div class="mt-3 font-medium">Jyothika</div>
+                <a class="social-btn" href="https://www.linkedin.com/" target="_blank" rel="noreferrer" aria-label="LinkedIn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M4.98 3.5C4.98 4.88 3.86 6 2.5 6 1.12 6 0 4.88 0 3.5 0 2.12 1.12 1 2.5 1 3.86 1 4.98 2.12 4.98 3.5zM.2 8.9H4.8V24H.2zM7.7 8.9H12.1V11.1H12.2c.6-1.1 2.2-2.2 4.6-2.2 4.9 0 5.8 3.2 5.8 7.3V24h-4.7v-7.5c0-1.8 0-4.2-2.6-4.2-2.6 0-3 2-3 4v7.7H7.7z" fill="currentColor"/>
+                </svg>
+            </a>
+            </div>
+
+            <!-- member 8 -->
+            <div class="text-center">
+                <button onclick="toggleMember(8)" class="avatar-wrap w-28 h-28 mx-auto rounded-full overflow-hidden float-subtle" title="Member 8">
+                <img src="fida.png" alt="Member 8" class="w-full h-full object-cover">
+                </button>
+                <div class="mt-3 font-medium">Fida</div>
+                <a class="social-btn" href="https://www.linkedin.com/" target="_blank" rel="noreferrer" aria-label="LinkedIn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M4.98 3.5C4.98 4.88 3.86 6 2.5 6 1.12 6 0 4.88 0 3.5 0 2.12 1.12 1 2.5 1 3.86 1 4.98 2.12 4.98 3.5zM.2 8.9H4.8V24H.2zM7.7 8.9H12.1V11.1H12.2c.6-1.1 2.2-2.2 4.6-2.2 4.9 0 5.8 3.2 5.8 7.3V24h-4.7v-7.5c0-1.8 0-4.2-2.6-4.2-2.6 0-3 2-3 4v7.7H7.7z" fill="currentColor"/>
+                </svg>
+            </a>
+            </div>
+            </div>
+
+            <!-- dropdown info area -->
+            <div id="member-info" class="member-card bg-white/60 backdrop-blur-xl p-6 mt-8 rounded-2xl shadow-lg glass"></div>
+        </section>
+
+        <!-- OFFER -->
+        <section id="offer" class="max-w-4xl mx-auto px-6 py-8 reveal" data-reveal>
+            <h2 class="text-3xl font-bold mb-6">What We Offer</h2>
+            <div class="grid md:grid-cols-3 gap-6">
+            <div class="p-6 rounded-2xl glass">
+                <h3 class="font-semibold mb-2">• Personal growth and self-awareness</h3>
+                <p class="text-gray-600">Workshops and activities to foster individual development.</p>
+             </div>
+
+            <div class="p-6 rounded-2xl glass">
+                <h3 class="font-semibold mb-2">Creative problem solving</h3>
+                <p class="text-gray-600">Collaborative sessions to tackle challenges innovatively.</p>
+            </div>
+
+            <div class="p-6 rounded-2xl glass">
+                <h3 class="font-semibold mb-2">Leadership practice</h3>
+                <p class="text-gray-600">Opportunities to lead projects and initiatives within the group.</p>
+            </div>
+
+              <div class="p-6 rounded-2xl glass">
+                <h3 class="font-semibold mb-2">• Mindful communication</h3>
+                <p class="text-gray-600">Training in effective and empathetic communication techniques.</p>
+            </div>
+            <div class="p-6 rounded-2xl glass">
+                <h3 class="font-semibold mb-2">• Motivation and team synergy</h3>
+                <p class="text-gray-600">Activities to boost team morale and enhance collaboration.</p>
+
+        </div>
+        </section>
+
+        <!-- CONTACT -->
+        <section id="contact" class="max-w-4xl mx-auto px-6 py-8 reveal" data-reveal>
+            <h2 class="text-3xl font-bold mb-4">Contact</h2>
+            <p class="text-gray-700 mb-6">Reach us at <span class="font-medium">team@8foldevolution.com</span></p>
+
+            <form class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input class="p-3 border rounded-lg" placeholder="Your name" />
+            <input class="p-3 border rounded-lg" placeholder="Email" />
+            <textarea class="p-3 border rounded-lg md:col-span-2" rows="4" placeholder="Message"></textarea>
+            <button class="px-6 py-3 bg-[color:var(--logo-blue)] text-white rounded-lg md:col-span-2">Send Message</button>
+            </form>
+        </section>
+        </main>
+
+        <!-- GLASS FOOTER -->
+        <footer class="mt-12">
+        <div class="max-w-6xl mx-auto px-6 py-8 glass rounded-2xl flex flex-col md:flex-row items-center justify-between gap-6">
+            <div>
+            <div class="text-lg font-semibold">8 Fold Evolution</div>
+            <div class="text-sm text-[color:var(--muted)]">Viswajyothi College of Engineering</div>
+            </div>
+
+            <div class="flex items-center gap-4">
+            <!-- LinkedIn -->
+            <a class="social-btn" href="https://www.linkedin.com/" target="_blank" rel="noreferrer" aria-label="LinkedIn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M4.98 3.5C4.98 4.88 3.86 6 2.5 6 1.12 6 0 4.88 0 3.5 0 2.12 1.12 1 2.5 1 3.86 1 4.98 2.12 4.98 3.5zM.2 8.9H4.8V24H.2zM7.7 8.9H12.1V11.1H12.2c.6-1.1 2.2-2.2 4.6-2.2 4.9 0 5.8 3.2 5.8 7.3V24h-4.7v-7.5c0-1.8 0-4.2-2.6-4.2-2.6 0-3 2-3 4v7.7H7.7z" fill="currentColor"/>
+                </svg>
+            </a>
+
+            <!-- Instagram -->
+            <a class="social-btn" href="https://www.instagram.com/" target="_blank" rel="noreferrer" aria-label="Instagram">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm5 6.2a4.8 4.8 0 1 0 0 9.6 4.8 4.8 0 0 0 0-9.6zm6.8-2.4a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4z" fill="currentColor"/>
+                </svg>
+            </a>
+            </div>
+        </div>
+        </footer>
+    </div>
+
+    <!-- ===== SCRIPTS: reveal, loader, avatar dropdown & misc ===== -->
+    <script>
+        // ---------- LOADER ----------
+        const loader = document.getElementById('loader');
+        // simulate a small load time — hide after 900ms
+        window.addEventListener('load', () => {
+        setTimeout(()=> {
+            loader.classList.add('loader-hidden');
+        }, 900);
+        });
+
+        // ---------- Reveal on scroll ----------
+        const reveals = document.querySelectorAll('[data-reveal]');
+        const observer = new IntersectionObserver((entries)=>{
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+            }
+        });
+        }, { threshold: 0.18 });
+
+        reveals.forEach(el => observer.observe(el));
+
+        // ---------- Avatar float stagger (slightly offset) ----------
+        document.querySelectorAll('.float-subtle').forEach((el, i) => {
+        el.style.animationDelay = `${i * 0.12}s`;
+        });
+
+        // ---------- MEMBER INTERACTION ----------
+        const teamInfo = {
+        1: { name: "Navaneeth", role: "Team Lead(Visonary)", description: "This member sees the “bigger picture.” They think long-term, bring new ideas, and help the team stay inspired.", img:"navaneeth.png" },
+        2: { name: "Rizwan", role: "The Analyst", description: "This member thinks deeply, evaluates ideas, and helps the team choose the best direction.", img:"rizwan.png" },
+        3: { name: "Milan", role: "The Harmonizer", description: "This member maintains peace in the group and handles conflicts or stress calmly.", img:"milan.png" },
+        4: { name: "Hisana", role: "Communicator", description: "This member excels at presenting ideas, resolving misunderstandings, and making sure everyone’s voice is heard.", img:"hisana.png" },
+        5: { name: "Niya", role: "The Creative Spark", description: "This member brings artistic ideas, storytelling, design concepts, and creative solutions.", img:"niya.png" },
+        6: { name: "Gokul", role: "The Action Taker", description: "This member turns ideas into real action. When the team needs movement, they push things forward.", img:"gokul.png" },
+        7: { name: "Jyothika", role: "Organizer", description: "This member keeps the team on track — organizing tasks, planning steps, and ensuring everything runs smoothly.", img:"jyothika.png" },
+        8: { name: "Fida", role: "Motivator", description: "This member lifts the team’s energy, supports others, and reminds everyone of their strengths.", img:"fida.png" },
+        };
+
+        let openMember = null;
+        function toggleMember(id) {
+        const info = document.getElementById('member-info');
+        // close if same
+        if (openMember === id) {
+            info.classList.remove('open');
+            openMember = null;
+            return;
+        }
+        openMember = id;
+        const data = teamInfo[id];
+        info.innerHTML = `
+            <div class="flex flex-col md:flex-row items-start md:items-center gap-6">
+            <img src="${data.img}" class="w-24 h-24 rounded-full shadow-md" alt="${data.name}">
+            <div>
+                <div class="text-xl font-bold">${data.name}</div>
+                <div class="text-sm text-[color:var(--muted)] mt-1">${data.role}</div>
+            </div>
+            </div>
+            <p class="mt-4 text-gray-700">${data.description}</p>
+        `;
+        // ensure transition starts
+        requestAnimationFrame(()=> info.classList.add('open'));
+        // scroll into view a little (only on small screens maybe)
+        setTimeout(()=> {
+            info.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+        }, 60);
+        }
+
+        // ---------- Smooth internal link scroll fallback ----------
+        document.querySelectorAll('a[href^="#"]').forEach(a=>{
+        a.addEventListener('click', (ev)=>{
+            ev.preventDefault();
+            const target = document.querySelector(a.getAttribute('href'));
+            if (target) target.scrollIntoView({behavior:'smooth', block:'start'});
+        });
+        });
+    </script>
+    </body>
+    </html>
